@@ -1,0 +1,8 @@
+node_modules
+uploads
+game-config.json
+.git
+.gitignore
+.DS_Store
+*.fig
+*.md

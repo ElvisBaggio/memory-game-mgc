@@ -1,0 +1,10 @@
+services:
+  memory-game:
+    build: .
+    container_name: memory-game-mgc
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/game-config.json:/app/game-config.json
