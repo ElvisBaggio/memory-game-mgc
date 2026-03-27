@@ -1,2 +1,5 @@
 .DS_Store
 *.fig
+node_modules/
+uploads/
+game-config.json
