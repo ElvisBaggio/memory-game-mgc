@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Jogo da Memória - Magalu Cloud</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* ════════════════════════════════════════════════════
+     ARACY DESIGN SYSTEM TOKENS (extracted from Figma)
+     ════════════════════════════════════════════════════ */
+  :root {
+    /* ── Primary Blue scale ── */
+    --primary-blue-50: #E5F2FF;
+    --primary-blue-100: #B8DCFF;
+    --primary-blue-200: #80C2FF;
+    --primary-blue-300: #4DA8FF;
+    --primary-blue-400: #1A8FFF;
+    --primary-blue-500: #0086FF; /* ← main brand */
+    --primary-blue-600: #006FD6;
+    --primary-blue-700: #0058AD;
+    --primary-blue-800: #004185;
+    --primary-blue-900: #002B5C;
+
+    /* ── Secondary Purple scale ── */
+    --secondary-purple-400: #8000FD;
+
+    /* ── Secondary Pink ── */
+    --secondary-pink-400: #DF00FF;
+
+    /* ── Neutral Gray scale (Escala de cinza) ── */
+    --neutral-gray-50: #F7F8F9;
+    --neutral-gray-100: #E8EBED;
+    --neutral-gray-200: #C9CDD2;
+    --neutral-gray-300: #A0A6AD;
+    --neutral-gray-400: #6A7278; /* ← "Cloud" text in logo */
+    --neutral-gray-500: #4A5057;
+    --neutral-gray-600: #363B40;
+    --neutral-gray-700: #2A2E33;
+    --neutral-gray-800: #1E2428; /* ← dark logo text */
+    --neutral-gray-900: #141719;
+    --neutral-gray-1000: #0D0F10;
+
+    /* ── MGC Icon gradients (4 petals) ── */
+    --mgc-grad-top: linear-gradient(32deg, #01BFFD 22%, #11EE37 55%);
+    --mgc-grad-right: linear-gradient(55deg, #8000FD 10%, #01BFFD 70%);
+    --mgc-grad-bottom: linear-gradient(337deg, #FBD736 19%, #FD4B17 89%);
+    --mgc-grad-left: linear-gradient(117deg, #DF00FF 18%, #FD4F02 68%);
+
+    /* ── Feedback / Info ── */
+    --success-green-400: #0DBF5E;
+    --danger-red-400: #E52727;
+    --warning-yellow-400: #E5A100;
+    --info-lightblue-400: #0095D9;
+    --info-purple-400: #6B35E8;
+
+    /* ── Background (dark theme) ── */
+    --bg-content-black: #1E2428;
+    --bg-fullblack: #141719;
+
+    /* ── Surface tokens (dark theme glassmorphism) ── */
+    --surface-card-01: rgba(255, 255, 255, 0.04);
+    --surface-card-02: rgba(255, 255, 255, 0.07);
+    --surface-card-03: rgba(255, 255, 255, 0.10);
+    --surface-modal: rgba(24, 28, 32, 0.90);
+    --surface-card-hover-01: rgba(55, 125, 164, 0.10);
+    --surface-card-hover-02: rgba(55, 125, 164, 0.16);
+    --surface-overlay: rgba(0, 0, 0, 0.50);
+
+    /* ── Sizing tokens ── */
+    --size-small: 32px;
+    --size-medium: 40px;
+    --size-large: 48px;
+    --height-button-xsmall: 24px;
+    --height-button-small: 32px;
+    --height-button-medium: 40px;
+    --height-button-large: 48px;
+    --height-input-default: 48px;
+
+    /* ── Icon sizes ── */
+    --icon-xsmall: 8px;
+    --icon-small: 16px;
+    --icon-medium: 24px;
+    --icon-large: 32px;
+
+    /* ── Radius ── */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-full: 999px;
+
+    /* ── Spacing ── */
+    --space-2: 2px;
+    --space-4: 4px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-24: 24px;
+    --space-32: 32px;
+    --space-48: 48px;
+  }
+
+  /* ── RESET ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-fullblack);
+    color: #FFFFFF;
+    min-height: 100dvh;
+    overflow: hidden;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ── Subtle BG glow ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 10% 90%, rgba(0, 134, 255, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 90% 10%, rgba(128, 0, 253, 0.04) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    height: 100dvh;
+    display: flex; flex-direction: column;
+    padding: var(--space-24) var(--space-32);
+  }
+
+  /* ════ HEADER ════ */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: var(--space-16);
+    flex-shrink: 0; gap: var(--space-12);
+  }
+
+  .logo-area { display: flex; align-items: center; gap: var(--space-12); }
+
+  /* SVG Logo from design system */
+  .logo-img { height: 40px; width: auto; flex-shrink: 0; }
+  .logo-sub { font-weight: 600; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--neutral-gray-400); margin-top: 2px; }
+
+  /* Inline SVG icon sizing for buttons */
+  .btn-icon { width: 16px; height: 16px; flex-shrink: 0; }
+  .btn .btn-icon { vertical-align: middle; }
+
+  /* MGC petal icon for card fronts */
+  .mgc-icon-card {
+    width: 48px; height: 48px;
+    display: grid; grid-template: 1fr 1fr / 1fr 1fr;
+    gap: 3px; opacity: 0.12;
+  }
+  .mgc-petal-card { border-radius: 4px 4px 4px 10px; }
+  .mgc-petal-card:nth-child(1) { background: var(--mgc-grad-top); border-radius: 10px 4px 4px 4px; }
+  .mgc-petal-card:nth-child(2) { background: var(--mgc-grad-right); border-radius: 4px 10px 4px 4px; }
+  .mgc-petal-card:nth-child(3) { background: var(--mgc-grad-left); border-radius: 4px 4px 4px 10px; }
+  .mgc-petal-card:nth-child(4) { background: var(--mgc-grad-bottom); border-radius: 4px 4px 10px 4px; }
+
+  .stats { display: flex; gap: var(--space-12); }
+  .stat-box {
+    text-align: center;
+    padding: var(--space-8) var(--space-16);
+    background: var(--surface-card-01);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(16px);
+  }
+  .stat-label { font-weight: 600; font-size: 9px; color: var(--neutral-gray-400); text-transform: uppercase; letter-spacing: 1.5px; }
+  .stat-value { font-weight: 800; font-size: 24px; color: var(--primary-blue-400); font-variant-numeric: tabular-nums; }
+  .stat-value.timer { color: var(--warning-yellow-400); }
+  .stat-value.pairs { color: var(--success-green-400); }
+
+  .controls { display: flex; gap: var(--space-8); }
+
+  /* ════ BUTTONS (Aracy: height-button-medium = 40px, large = 48px) ════ */
+  .btn {
+    font-family: inherit; font-weight: 700; font-size: 14px;
+    border: none; cursor: pointer;
+    border-radius: var(--radius-sm);
+    padding: 0 var(--space-16);
+    height: var(--height-button-medium);
+    min-width: var(--height-button-medium);
+    transition: all 0.12s; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-8);
+  }
+  .btn:active { transform: scale(0.96); opacity: 0.9; }
+  .btn-primary { background: var(--primary-blue-500); color: #FFF; }
+  .btn-secondary { background: var(--surface-card-02); color: var(--neutral-gray-100); border: 1px solid rgba(255,255,255,0.08); }
+  .btn-accent { background: var(--secondary-purple-400); color: #FFF; }
+  .btn-lg { height: var(--height-button-large); font-size: 16px; border-radius: var(--radius-md); padding: 0 var(--space-24); }
+
+  /* ════ GAME BOARD ════ */
+  .game-area { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; padding: var(--space-4) 0; }
+  .board { display: grid; gap: var(--space-12); width: 100%; max-width: 1200px; height: 100%; }
+  .board.grid-2x5 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr); }
+  .board.grid-4x4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+  .board.grid-4x5 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr); }
+  .board.grid-4x6 { grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(4, 1fr); }
+
+  /* ════ CARDS (Aracy surface-card + glassmorphism) ════ */
+  .card { perspective: 900px; cursor: pointer; }
+  .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); transform-style: preserve-3d; }
+  .card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: var(--radius-xl);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: var(--space-8);
+  }
+
+  /* Front: Aracy surface-card-level-01-default (dark) */
+  .card-front {
+    background: var(--surface-card-02);
+    border: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+  }
+  .card-front-icon { opacity: 1; }
+  .card-front-label { font-weight: 700; font-size: 8px; color: var(--neutral-gray-500); letter-spacing: 3px; text-transform: uppercase; margin-top: var(--space-8); }
+
+  /* Back: elevated card with blue border */
+  .card-back {
+    transform: rotateY(180deg);
+    background: var(--surface-card-02);
+    border: 2px solid var(--primary-blue-500);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 20px rgba(0, 134, 255, 0.15);
+    text-align: center; gap: var(--space-8);
+  }
+  .card-emoji { font-size: 42px; line-height: 1; }
+  .card-text { font-weight: 700; font-size: 14px; color: #FFF; line-height: 1.2; max-width: 92%; }
+
+  /* 5-pair mode: bigger */
+  .board.grid-2x5 .card-emoji { font-size: 56px; }
+  .board.grid-2x5 .card-text { font-size: 20px; }
+  .board.grid-2x5 .mgc-icon-card { width: 60px; height: 60px; }
+
+  /* Matched: success green */
+  .card.matched .card-back { border-color: var(--success-green-400); box-shadow: 0 0 20px rgba(13, 191, 94, 0.15); }
+  .card.matched .card-text { color: var(--success-green-400); }
+
+  /* Wrong: danger red */
+  @keyframes shake { 0%,100%{transform:rotateY(180deg) translateX(0)} 20%{transform:rotateY(180deg) translateX(-8px)} 40%{transform:rotateY(180deg) translateX(8px)} 60%{transform:rotateY(180deg) translateX(-4px)} 80%{transform:rotateY(180deg) translateX(4px)} }
+  .card.wrong .card-inner { animation: shake 0.4s ease; }
+  .card.wrong .card-back { border-color: var(--danger-red-400); box-shadow: 0 0 20px rgba(229, 39, 39, 0.2); }
+
+  /* Touch feedback */
+  .card:active:not(.flipped):not(.matched) .card-front { border-color: rgba(0, 134, 255, 0.3); background: var(--surface-card-hover-01); }
+
+  /* ════ VICTORY ════ */
+  .victory-overlay { position: fixed; inset: 0; background: var(--surface-modal); backdrop-filter: blur(24px); display: none; align-items: center; justify-content: center; z-index: 100; flex-direction: column; gap: var(--space-24); }
+  .victory-overlay.active { display: flex; }
+  .victory-icon { animation: bounce 1s infinite; }
+  .victory-icon svg { width: 80px; height: 80px; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .victory-title { font-weight: 900; font-size: 48px; color: var(--primary-blue-500); }
+  .victory-stats { font-weight: 500; font-size: 18px; color: var(--neutral-gray-300); }
+
+  /* ════ MODAL ════ */
+  .modal-overlay { position: fixed; inset: 0; background: var(--surface-overlay); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 200; }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg-content-black);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-32);
+    width: 92vw; max-width: 580px; max-height: 85dvh;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  }
+  .modal h2 { font-weight: 800; font-size: 20px; margin-bottom: var(--space-24); }
+
+  .modal-words { display: flex; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-24); }
+  .word-tag {
+    display: inline-flex; align-items: center; gap: var(--space-8);
+    padding: var(--space-8) var(--space-12);
+    background: rgba(0, 134, 255, 0.08);
+    border: 1px solid rgba(0, 134, 255, 0.15);
+    border-radius: var(--radius-sm);
+    font-weight: 500; font-size: 12px;
+  }
+  .word-tag .remove-word {
+    cursor: pointer; color: var(--danger-red-400); font-weight: 800; font-size: 16px;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-sm); background: rgba(229, 39, 39, 0.08);
+  }
+  .word-tag .remove-word:active { background: rgba(229, 39, 39, 0.2); }
+
+  .add-word-row { display: flex; gap: var(--space-8); margin-bottom: var(--space-16); }
+  .add-word-row input {
+    flex: 1; padding: 0 var(--space-16); height: var(--height-input-default);
+    background: var(--bg-fullblack); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius-sm); color: #FFF; font-family: inherit; font-size: 16px; font-weight: 500; outline: none;
+  }
+  .add-word-row input:focus { border-color: var(--primary-blue-500); }
+  .add-word-row input::placeholder { color: var(--neutral-gray-500); }
+
+  .emoji-picker { display: flex; gap: var(--space-8); flex-wrap: wrap; margin-bottom: var(--space-24); }
+  .emoji-opt {
+    width: var(--height-button-large); height: var(--height-button-large);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; background: var(--bg-fullblack);
+    border: 2px solid transparent; border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .emoji-opt:active { transform: scale(0.92); }
+  .emoji-opt.selected { border-color: var(--primary-blue-500); background: rgba(0, 134, 255, 0.06); }
+
+  .grid-select { display: flex; gap: var(--space-8); margin-bottom: var(--space-24); flex-wrap: wrap; }
+  .grid-opt {
+    flex: 1; min-width: 70px; padding: var(--space-12) var(--space-8);
+    text-align: center; background: var(--bg-fullblack);
+    border: 2px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm);
+    cursor: pointer; font-family: inherit; font-weight: 700; font-size: 14px; color: var(--neutral-gray-400);
+    min-height: var(--height-button-large);
+  }
+  .grid-opt:active { transform: scale(0.96); }
+  .grid-opt.selected { border-color: var(--primary-blue-500); color: var(--primary-blue-400); }
+  .grid-opt small { font-weight: 500; font-size: 11px; color: var(--neutral-gray-500); }
+
+  .modal-actions { display: flex; justify-content: flex-end; gap: var(--space-8); margin-top: var(--space-24); }
+  .section-label { font-weight: 700; font-size: 11px; color: var(--neutral-gray-400); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: var(--space-8); }
+
+  /* ════ CONFETTI (MGC icon colors) ════ */
+  @keyframes cfall { 0%{transform:translateY(-10vh) rotate(0);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+  .confetti { position: fixed; z-index: 101; pointer-events: none; animation: cfall linear forwards; }
+
+  /* ════ RESPONSIVE ════ */
+  @media (max-width:900px) {
+    .app { padding: 14px 16px; }
+    .logo-brand { font-size: 17px; }
+    .mgc-icon { width: 36px; height: 36px; }
+    .stat-value { font-size: 20px; }
+    .board { gap: 10px; }
+    .card-text { font-size: 11px; }
+    .card-emoji { font-size: 30px; }
+    .board.grid-2x5 .card-emoji { font-size: 42px; }
+    .board.grid-2x5 .card-text { font-size: 15px; }
+  }
+  @media (max-width:600px) {
+    .stats { gap: 6px; }
+    .stat-box { padding: 4px 8px; }
+    .stat-value { font-size: 17px; }
+    .mgc-icon { width: 30px; height: 30px; gap: 2px; }
+    .logo-brand { font-size: 15px; }
+    .logo-sub { display: none; }
+    .board { gap: 7px; }
+    .card-face { border-radius: var(--radius-md); padding: 5px; }
+    .mgc-icon-card { width: 26px; height: 26px; gap: 2px; }
+    .card-front-label { display: none; }
+    .card-emoji { font-size: 22px; }
+    .card-text { font-size: 9px; }
+    .board.grid-2x5 .card-emoji { font-size: 32px; }
+    .board.grid-2x5 .card-text { font-size: 12px; }
+    .victory-title { font-size: 32px; }
+    .victory-emoji { font-size: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="logo-area">
+      <img src="logo.svg" alt="Magalu Cloud" class="logo-img">
+      <div class="logo-sub">Jogo da Memória</div>
+    </div>
+    <div class="stats">
+      <div class="stat-box"><div class="stat-label">Jogadas</div><div class="stat-value" id="moves">0</div></div>
+      <div class="stat-box"><div class="stat-label">Tempo</div><div class="stat-value timer" id="timer">0:00</div></div>
+      <div class="stat-box"><div class="stat-label">Pares</div><div class="stat-value pairs" id="pairsFound">0 / 0</div></div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-secondary" onclick="openSettings()"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Config</button>
+      <button class="btn btn-primary" onclick="startGame()"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Novo Jogo</button>
+    </div>
+  </div>
+
+  <div class="game-area"><div class="board" id="board"></div></div>
+</div>
+
+<div class="victory-overlay" id="victory">
+  <div class="victory-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+  <div class="victory-title">Parabéns!</div>
+  <div class="victory-stats" id="victoryStats"></div>
+  <button class="btn btn-primary btn-lg" onclick="closeVictory();startGame();" style="margin-top:12px;"><svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Jogar Novamente</button>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2><svg style="width:20px;height:20px;vertical-align:middle;margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configurações</h2>
+    <div class="section-label">Tamanho do Tabuleiro</div>
+    <div class="grid-select">
+      <div class="grid-opt" data-grid="2x5" onclick="selectGrid('2x5')">2×5<br><small>5 pares</small></div>
+      <div class="grid-opt" data-grid="4x4" onclick="selectGrid('4x4')">4×4<br><small>8 pares</small></div>
+      <div class="grid-opt" data-grid="4x5" onclick="selectGrid('4x5')">4×5<br><small>10 pares</small></div>
+      <div class="grid-opt" data-grid="4x6" onclick="selectGrid('4x6')">4×6<br><small>12 pares</small></div>
+    </div>
+    <div class="section-label">Palavras do Jogo</div>
+    <div class="modal-words" id="wordList"></div>
+    <div class="section-label">Adicionar Nova Palavra</div>
+    <div class="add-word-row">
+      <input type="text" id="newWordInput" placeholder="Ex: Computação Serverless" maxlength="30">
+      <button class="btn btn-primary" onclick="addWord()">Adicionar</button>
+    </div>
+    <div class="section-label">Emoji</div>
+    <div class="emoji-picker" id="emojiPicker"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeSettings()">Cancelar</button>
+      <button class="btn btn-accent" onclick="closeSettings();startGame();">Salvar & Jogar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_WORDS=[{text:"Soberania Digital",emoji:"🇧🇷"},{text:"Baixa Latência",emoji:"⚡"},{text:"Preço em Real",emoji:"💰"},{text:"Suporte em Português",emoji:"🗣️"},{text:"Data Center Brasil",emoji:"🏢"},{text:"LGPD Nativa",emoji:"🔒"},{text:"Cloud Soberana",emoji:"🛡️"},{text:"Kubernetes",emoji:"☸️"},{text:"Object Storage",emoji:"🗄️"},{text:"Alta Disponibilidade",emoji:"🔄"},{text:"Máquina Virtual",emoji:"🖥️"},{text:"Rede Privada",emoji:"🌐"},{text:"Escalabilidade",emoji:"📈"},{text:"Backup Automático",emoji:"💾"},{text:"Monitoramento",emoji:"📊"},{text:"Serverless",emoji:"🚀"}];
+const EMOJIS=["🚀","🌍","🔐","📡","🧠","💡","⭐","🎯","🏗️","🔧","🛰️","📦","🗂️","🧩","🌩️","🔥","💎","🤖"];
+let words=JSON.parse(JSON.stringify(DEFAULT_WORDS)),gridType="2x5",selectedEmoji=EMOJIS[0];
+let cards=[],flippedCards=[],matchedPairs=0,totalPairs=0,moves=0,timerInterval=null,seconds=0,locked=false;
+
+const gridCfg=t=>({"2x5":{p:5},"4x4":{p:8},"4x5":{p:10},"4x6":{p:12}}[t]);
+function selectGrid(t){gridType=t;document.querySelectorAll('.grid-opt').forEach(e=>e.classList.toggle('selected',e.dataset.grid===t))}
+function openSettings(){renderWordList();renderEmojiPicker();document.querySelectorAll('.grid-opt').forEach(e=>e.classList.toggle('selected',e.dataset.grid===gridType));document.getElementById('settingsModal').classList.add('active')}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('active')}
+function renderWordList(){document.getElementById('wordList').innerHTML=words.map((w,i)=>`<div class="word-tag"><span>${w.emoji} ${w.text}</span><span class="remove-word" ontouchend="event.preventDefault();removeWord(${i})" onclick="removeWord(${i})">✕</span></div>`).join('')}
+function renderEmojiPicker(){document.getElementById('emojiPicker').innerHTML=EMOJIS.map(e=>`<div class="emoji-opt ${e===selectedEmoji?'selected':''}" onclick="pickEmoji('${e}',this)">${e}</div>`).join('')}
+function pickEmoji(e,el){selectedEmoji=e;document.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('selected'));el.classList.add('selected')}
+function addWord(){const i=document.getElementById('newWordInput'),t=i.value.trim();if(!t)return;words.push({text:t,emoji:selectedEmoji});i.value='';renderWordList()}
+function removeWord(i){if(words.length<=5)return alert("Mínimo de 5 palavras!");words.splice(i,1);renderWordList()}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function startGame(){
+  const c=gridCfg(gridType);totalPairs=c.p;matchedPairs=0;moves=0;seconds=0;flippedCards=[];locked=false;
+  clearInterval(timerInterval);timerInterval=null;updateUI();
+  const sel=shuffle([...words]).slice(0,c.p);
+  let cd=[];sel.forEach((w,i)=>{cd.push({text:w.text,emoji:w.emoji,pid:i});cd.push({text:w.text,emoji:w.emoji,pid:i})});
+  cards=shuffle(cd);renderBoard();
+}
+
+function renderBoard(){
+  const b=document.getElementById('board');
+  b.className=`board grid-${gridType}`;
+  b.innerHTML=cards.map((c,i)=>`<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><div class="card-front-icon"><div class="mgc-icon-card"><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div></div></div><div class="card-front-label">MGC</div></div><div class="card-face card-back"><div class="card-emoji">${c.emoji}</div><div class="card-text">${c.text}</div></div></div></div>`).join('');
+  document.querySelectorAll('.card').forEach((el,i)=>{let t=false;el.addEventListener('touchend',e=>{e.preventDefault();t=true;flipCard(i);setTimeout(()=>t=false,400)},{passive:false});el.addEventListener('click',()=>{if(!t)flipCard(i)})});
+}
+
+function flipCard(i){
+  if(locked)return;const el=document.querySelectorAll('.card')[i];
+  if(!el||el.classList.contains('flipped')||el.classList.contains('matched'))return;
+  if(flippedCards.length>=2)return;
+  if(!timerInterval)timerInterval=setInterval(()=>{seconds++;updateUI()},1000);
+  el.classList.add('flipped');flippedCards.push({i,el,d:cards[i]});
+  if(flippedCards.length===2){moves++;updateUI();checkMatch()}
+}
+
+function checkMatch(){
+  const[a,b]=flippedCards;
+  if(a.d.pid===b.d.pid){setTimeout(()=>{a.el.classList.add('matched');b.el.classList.add('matched');matchedPairs++;updateUI();flippedCards=[];if(matchedPairs===totalPairs){clearInterval(timerInterval);setTimeout(showVictory,600)}},400)}
+  else{locked=true;setTimeout(()=>{a.el.classList.add('wrong');b.el.classList.add('wrong')},300);setTimeout(()=>{a.el.classList.remove('flipped','wrong');b.el.classList.remove('flipped','wrong');flippedCards=[];locked=false},1000)}
+}
+
+function updateUI(){
+  document.getElementById('moves').textContent=moves;
+  document.getElementById('timer').textContent=`${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')}`;
+  document.getElementById('pairsFound').textContent=`${matchedPairs} / ${totalPairs}`;
+}
+
+function showVictory(){
+  document.getElementById('victoryStats').textContent=`${moves} jogadas · ${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')} de tempo`;
+  document.getElementById('victory').classList.add('active');spawnConfetti();
+}
+function closeVictory(){document.getElementById('victory').classList.remove('active')}
+
+function spawnConfetti(){
+  const cols=['#01BFFD','#11EE37','#8000FD','#FBD736','#FD4B17','#DF00FF','#0086FF','#FD4F02'];
+  for(let i=0;i<50;i++){const e=document.createElement('div');e.className='confetti';e.style.left=Math.random()*100+'vw';e.style.backgroundColor=cols[Math.floor(Math.random()*cols.length)];const s=6+Math.random()*10;e.style.width=s+'px';e.style.height=s+'px';e.style.borderRadius=Math.random()>0.5?'50%':'2px';e.style.animationDuration=(2+Math.random()*3)+'s';e.style.animationDelay=Math.random()*1.5+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),5000)}
+}
+
+document.getElementById('newWordInput').addEventListener('keydown',e=>{if(e.key==='Enter')addWord()});
+startGame();
+</script>
+</body>
+</html>
