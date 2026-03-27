@@ -22,11 +22,23 @@ const DEFAULT_WORDS = [
   { text: "Serverless", emoji: "🚀" }
 ];
 
-const EMOJIS = ["🚀","🌍","🔐","📡","🧠","💡","⭐","🎯","🏗️","🔧","🛰️","📦","🗂️","🧩","🌩️","🔥","💎","🤖"];
+const EMOJI_CATEGORIES = {
+  "🔧 Tech":    ["🚀","💻","🖥️","📡","📱","🛰️","☸️","🔌","⌨️","🖱️","💿","📀","🔋","📟","📠","🖨️","📺","📻","⏱️","⏰"],
+  "🌍 Natureza": ["🌍","🌎","🌏","🌊","🔥","⭐","🌙","☀️","🌈","⛅","🌩️","❄️","🌸","🌺","🌻","🌲","🌵","🍄","🐝","🦋"],
+  "🧠 Ciência":  ["🧠","🔬","🧪","⚗️","🧬","🔭","📐","📏","💊","🩺","🌡️","🧲","⚡","💎","🪐","🛸","🤖","👾","🧫","🔮"],
+  "📦 Objetos": ["📦","🗄️","🗂️","📁","📂","📝","📎","🔐","🔑","🔒","🛡️","🏷️","💰","💳","📊","📈","📉","🗃️","🧰","🔧"],
+  "😀 Rostos":  ["😀","😎","🤓","🧐","🤯","🥳","😱","🤔","🫡","🤩","😴","🥸","👻","💀","🤡","👽","🙈","🙉","🙊","🐵"],
+  "🎯 Símbolos":["🎯","💡","⚙️","🏗️","🧩","🎲","♻️","✅","❌","⚠️","🏆","🎖️","🥇","🎪","🎨","🎵","🔔","📢","🏴","🚩"],
+  "🇧🇷 Bandeiras":["🇧🇷","🇺🇸","🇪🇺","🇯🇵","🇩🇪","🇫🇷","🇬🇧","🇰🇷","🇮🇳","🇨🇳","🇨🇦","🇦🇺","🇲🇽","🇦🇷","🇵🇹","🇪🇸","🇮🇹","🇷🇺","🇿🇦","🏳️‍🌈"],
+  "🐾 Animais": ["🐾","🐶","🐱","🐻","🦊","🐼","🦁","🐯","🐸","🐵","🐔","🐧","🐦","🦅","🦄","🐙","🦀","🐬","🐳","🦈"],
+  "🍕 Comida":  ["🍕","🍔","🌮","🍣","🍿","🎂","🍪","🍩","🍉","🍓","🍇","🥑","🌽","🥐","☕","🧃","🍺","🧁","🍫","🥤"]
+};
+const CATEGORY_NAMES = Object.keys(EMOJI_CATEGORIES);
+let activeEmojiCategory = CATEGORY_NAMES[0];
 
 let words = JSON.parse(JSON.stringify(DEFAULT_WORDS));
 let gridType = "2x5";
-let selectedEmoji = EMOJIS[0];
+let selectedEmoji = EMOJI_CATEGORIES[CATEGORY_NAMES[0]][0];
 let pendingImageUrl = null; // URL of uploaded image for new word
 let activeSourceTab = "emoji"; // "emoji" or "image"
 
@@ -200,9 +212,24 @@ function renderWordList() {
 }
 
 function renderEmojiPicker() {
-  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(e =>
+  // Category tabs
+  const tabsEl = document.getElementById('emojiCategoryTabs');
+  if (tabsEl) {
+    tabsEl.innerHTML = CATEGORY_NAMES.map(cat => {
+      const icon = cat.split(' ')[0];
+      return `<div class="emoji-cat-tab ${cat === activeEmojiCategory ? 'active' : ''}" onclick="selectEmojiCategory('${cat}')" title="${cat}">${icon}</div>`;
+    }).join('');
+  }
+  // Emoji grid
+  const emojis = EMOJI_CATEGORIES[activeEmojiCategory] || [];
+  document.getElementById('emojiPicker').innerHTML = emojis.map(e =>
     `<div class="emoji-opt ${e === selectedEmoji ? 'selected' : ''}" onclick="pickEmoji('${e}',this)">${e}</div>`
   ).join('');
+}
+
+function selectEmojiCategory(cat) {
+  activeEmojiCategory = cat;
+  renderEmojiPicker();
 }
 
 function pickEmoji(e, el) {
@@ -276,7 +303,7 @@ function renderBoard() {
     const visual = c.image
       ? `<img src="${c.image}" class="card-img" alt="${c.text}">`
       : `<div class="card-emoji">${c.emoji}</div>`;
-    return `<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><div class="card-front-icon"><div class="mgc-icon-card"><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div></div></div><div class="card-front-label">MGC</div></div><div class="card-face card-back">${visual}<div class="card-text">${c.text}</div></div></div></div>`;
+    return `<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><img src="assets/icon-mgc.svg" class="card-front-icon-img" alt="MGC"><div class="card-front-label">MGC</div></div><div class="card-face card-back">${visual}<div class="card-text">${c.text}</div></div></div></div>`;
   }).join('');
 
   document.querySelectorAll('.card').forEach((el, i) => {
