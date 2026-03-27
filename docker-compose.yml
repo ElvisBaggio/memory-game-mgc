@@ -4,7 +4,11 @@ services:
     container_name: memory-game-mgc
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "80:3000"
     volumes:
-      - ./data/uploads:/app/uploads
-      - ./data/game-config.json:/app/game-config.json
+      - game-data:/app/data
+    environment:
+      - DATA_DIR=/app/data
+
+volumes:
+  game-data:

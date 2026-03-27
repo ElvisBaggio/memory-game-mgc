@@ -6,12 +6,16 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ── Data directory (supports Docker volume via DATA_DIR env) ──
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
 // ── Ensure uploads dir exists ──
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // ── Config file path ──
-const CONFIG_FILE = path.join(__dirname, 'game-config.json');
+const CONFIG_FILE = path.join(DATA_DIR, 'game-config.json');
 
 // ── Multer storage: save to /uploads with unique names ──
 const storage = multer.diskStorage({
