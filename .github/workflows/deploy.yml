@@ -19,5 +19,6 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
             git pull origin main
+            echo "${{ github.ref_name }}" > .version
             docker compose up --build -d
             docker image prune -f
