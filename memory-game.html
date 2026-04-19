@@ -421,12 +421,14 @@ const DEFAULT_WORDS=[{text:"Soberania Digital",emoji:"🇧🇷"},{text:"Baixa La
 const EMOJIS=["🚀","🌍","🔐","📡","🧠","💡","⭐","🎯","🏗️","🔧","🛰️","📦","🗂️","🧩","🌩️","🔥","💎","🤖"];
 let words=JSON.parse(JSON.stringify(DEFAULT_WORDS)),gridType="2x5",selectedEmoji=EMOJIS[0];
 let cards=[],flippedCards=[],matchedPairs=0,totalPairs=0,moves=0,timerInterval=null,seconds=0,locked=false;
+let confettiContainer=null;
+function escapeHtml(str){if(str==null)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
 
 const gridCfg=t=>({"2x5":{p:5},"4x4":{p:8},"4x5":{p:10},"4x6":{p:12}}[t]);
 function selectGrid(t){gridType=t;document.querySelectorAll('.grid-opt').forEach(e=>e.classList.toggle('selected',e.dataset.grid===t))}
 function openSettings(){renderWordList();renderEmojiPicker();document.querySelectorAll('.grid-opt').forEach(e=>e.classList.toggle('selected',e.dataset.grid===gridType));document.getElementById('settingsModal').classList.add('active')}
 function closeSettings(){document.getElementById('settingsModal').classList.remove('active')}
-function renderWordList(){document.getElementById('wordList').innerHTML=words.map((w,i)=>`<div class="word-tag"><span>${w.emoji} ${w.text}</span><span class="remove-word" ontouchend="event.preventDefault();removeWord(${i})" onclick="removeWord(${i})">✕</span></div>`).join('')}
+function renderWordList(){document.getElementById('wordList').innerHTML=words.map((w,i)=>`<div class="word-tag"><span>${w.emoji} ${escapeHtml(w.text)}</span><span class="remove-word" ontouchend="event.preventDefault();removeWord(${i})" onclick="removeWord(${i})">✕</span></div>`).join('')}
 function renderEmojiPicker(){document.getElementById('emojiPicker').innerHTML=EMOJIS.map(e=>`<div class="emoji-opt ${e===selectedEmoji?'selected':''}" onclick="pickEmoji('${e}',this)">${e}</div>`).join('')}
 function pickEmoji(e,el){selectedEmoji=e;document.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('selected'));el.classList.add('selected')}
 function addWord(){const i=document.getElementById('newWordInput'),t=i.value.trim();if(!t)return;words.push({text:t,emoji:selectedEmoji});i.value='';renderWordList()}
@@ -444,7 +446,7 @@ function startGame(){
 function renderBoard(){
   const b=document.getElementById('board');
   b.className=`board grid-${gridType}`;
-  b.innerHTML=cards.map((c,i)=>`<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><div class="card-front-icon"><div class="mgc-icon-card"><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div></div></div><div class="card-front-label">MGC</div></div><div class="card-face card-back"><div class="card-emoji">${c.emoji}</div><div class="card-text">${c.text}</div></div></div></div>`).join('');
+  b.innerHTML=cards.map((c,i)=>`<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><div class="card-front-icon"><div class="mgc-icon-card"><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div><div class="mgc-petal-card"></div></div></div><div class="card-front-label">MGC</div></div><div class="card-face card-back"><div class="card-emoji">${c.emoji}</div><div class="card-text">${escapeHtml(c.text)}</div></div></div></div>`).join('');
   document.querySelectorAll('.card').forEach((el,i)=>{let t=false;el.addEventListener('touchend',e=>{e.preventDefault();t=true;flipCard(i);setTimeout(()=>t=false,400)},{passive:false});el.addEventListener('click',()=>{if(!t)flipCard(i)})});
 }
 
@@ -473,11 +475,14 @@ function showVictory(){
   document.getElementById('victoryStats').textContent=`${moves} jogadas · ${Math.floor(seconds/60)}:${(seconds%60).toString().padStart(2,'0')} de tempo`;
   document.getElementById('victory').classList.add('active');spawnConfetti();
 }
-function closeVictory(){document.getElementById('victory').classList.remove('active')}
+function closeVictory(){document.getElementById('victory').classList.remove('active');if(confettiContainer){confettiContainer.remove();confettiContainer=null}}
 
 function spawnConfetti(){
+  if(confettiContainer){confettiContainer.remove();confettiContainer=null}
+  confettiContainer=document.createElement('div');document.body.appendChild(confettiContainer);
   const cols=['#01BFFD','#11EE37','#8000FD','#FBD736','#FD4B17','#DF00FF','#0086FF','#FD4F02'];
-  for(let i=0;i<50;i++){const e=document.createElement('div');e.className='confetti';e.style.left=Math.random()*100+'vw';e.style.backgroundColor=cols[Math.floor(Math.random()*cols.length)];const s=6+Math.random()*10;e.style.width=s+'px';e.style.height=s+'px';e.style.borderRadius=Math.random()>0.5?'50%':'2px';e.style.animationDuration=(2+Math.random()*3)+'s';e.style.animationDelay=Math.random()*1.5+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),5000)}
+  for(let i=0;i<50;i++){const e=document.createElement('div');e.className='confetti';e.style.left=Math.random()*100+'vw';e.style.backgroundColor=cols[Math.floor(Math.random()*cols.length)];const s=6+Math.random()*10;e.style.width=s+'px';e.style.height=s+'px';e.style.borderRadius=Math.random()>0.5?'50%':'2px';e.style.animationDuration=(2+Math.random()*3)+'s';e.style.animationDelay=Math.random()*1.5+'s';confettiContainer.appendChild(e)}
+  setTimeout(()=>{if(confettiContainer){confettiContainer.remove();confettiContainer=null}},7000)
 }
 
 document.getElementById('newWordInput').addEventListener('keydown',e=>{if(e.key==='Enter')addWord()});
