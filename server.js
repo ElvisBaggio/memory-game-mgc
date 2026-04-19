@@ -115,12 +115,7 @@ app.post('/api/config', (req, res) => {
 
 // GET /api/version — Current deployed version
 app.get('/api/version', (_req, res) => {
-  try {
-    const v = fs.readFileSync(path.join(__dirname, '.version'), 'utf8').trim();
-    res.json({ version: v });
-  } catch {
-    res.json({ version: 'dev' });
-  }
+  res.json({ version: process.env.APP_VERSION || 'dev' });
 });
 
 // ── Start server ──

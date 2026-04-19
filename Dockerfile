@@ -13,6 +13,8 @@ COPY public/ ./public/
 # Criar diretório de uploads (persistido via volume)
 RUN mkdir -p /app/uploads
 
+ARG VERSION=dev
+ENV APP_VERSION=$VERSION
 ENV PORT=3000
 EXPOSE 3000
 

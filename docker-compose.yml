@@ -1,6 +1,9 @@
 services:
   memory-game:
-    build: .
+    build:
+      context: .
+      args:
+        VERSION: ${VERSION:-dev}
     container_name: memory-game-mgc
     restart: unless-stopped
     ports:
