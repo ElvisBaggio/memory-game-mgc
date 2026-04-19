@@ -3,6 +3,9 @@
 //  app.js
 // ═══════════════════════════════════════
 
+(async function MemoryGameApp() {
+  'use strict';
+
 const DEFAULT_WORDS = [
   { text: "Soberania Digital", emoji: "🇧🇷" },
   { text: "Baixa Latência", emoji: "⚡" },
@@ -39,13 +42,24 @@ let activeEmojiCategory = CATEGORY_NAMES[0];
 let words = JSON.parse(JSON.stringify(DEFAULT_WORDS));
 let gridType = "2x5";
 let selectedEmoji = EMOJI_CATEGORIES[CATEGORY_NAMES[0]][0];
-let pendingImageUrl = null; // URL of uploaded image for new word
-let activeSourceTab = "emoji"; // "emoji" or "image"
+let pendingImageUrl = null;
+let activeSourceTab = "emoji";
 
 let cards = [], flippedCards = [], matchedPairs = 0, totalPairs = 0, moves = 0;
 let timerInterval = null, seconds = 0, locked = false;
+let confettiContainer = null;
 
 const gridCfg = t => ({ "2x5": { p: 5 }, "4x4": { p: 8 }, "4x5": { p: 10 }, "4x6": { p: 12 } }[t]);
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // ═══════════════════════════════════════
 //  CONFIG PERSISTENCE (Server-side)
@@ -135,7 +149,7 @@ async function handleImageFile(file) {
     area.innerHTML = `
       <div class="image-preview-row">
         <img src="${url}" class="image-preview" alt="Preview">
-        <span class="image-preview-name">${file.name}</span>
+        <span class="image-preview-name">${escapeHtml(file.name)}</span>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); clearImagePreview()">✕</button>
       </div>`;
   } else {
@@ -205,9 +219,9 @@ function closeSettings() {
 function renderWordList() {
   document.getElementById('wordList').innerHTML = words.map((w, i) => {
     const icon = w.image
-      ? `<img src="${w.image}" alt="${w.text}">`
+      ? `<img src="${w.image}" alt="${escapeHtml(w.text)}">`
       : `<span>${w.emoji}</span>`;
-    return `<div class="word-tag">${icon} ${w.text}<span class="remove-word" ontouchend="event.preventDefault();removeWord(${i})" onclick="removeWord(${i})">✕</span></div>`;
+    return `<div class="word-tag">${icon} ${escapeHtml(w.text)}<span class="remove-word" ontouchend="event.preventDefault();removeWord(${i})" onclick="removeWord(${i})">✕</span></div>`;
   }).join('');
 }
 
@@ -301,9 +315,9 @@ function renderBoard() {
   b.className = `board grid-${gridType}`;
   b.innerHTML = cards.map((c, i) => {
     const visual = c.image
-      ? `<img src="${c.image}" class="card-img" alt="${c.text}">`
+      ? `<img src="${c.image}" class="card-img" alt="${escapeHtml(c.text)}">`
       : `<div class="card-emoji">${c.emoji}</div>`;
-    return `<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><img src="assets/icon-mgc.svg" class="card-front-icon-img" alt="MGC"><div class="card-front-label">MGC</div></div><div class="card-face card-back">${visual}<div class="card-text">${c.text}</div></div></div></div>`;
+    return `<div class="card" data-index="${i}"><div class="card-inner"><div class="card-face card-front"><img src="assets/icon-mgc.svg" class="card-front-icon-img" alt="MGC"><div class="card-front-label">MGC</div></div><div class="card-face card-back">${visual}<div class="card-text">${escapeHtml(c.text)}</div></div></div></div>`;
   }).join('');
 
   document.querySelectorAll('.card').forEach((el, i) => {
@@ -359,16 +373,27 @@ function updateUI() {
 
 function showVictory() {
   document.getElementById('victoryStats').textContent =
-    `${moves} jogadas · ${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')} de tempo`;
+    `${moves} jogadas · ${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '00')} de tempo`;
   document.getElementById('victory').classList.add('active');
   spawnConfetti();
 }
 
 function closeVictory() {
   document.getElementById('victory').classList.remove('active');
+  if (confettiContainer) {
+    confettiContainer.remove();
+    confettiContainer = null;
+  }
 }
 
 function spawnConfetti() {
+  if (confettiContainer) {
+    confettiContainer.remove();
+    confettiContainer = null;
+  }
+  confettiContainer = document.createElement('div');
+  document.body.appendChild(confettiContainer);
+
   const cols = ['#01BFFD','#11EE37','#8000FD','#FBD736','#FD4B17','#DF00FF','#0086FF','#FD4F02'];
   for (let i = 0; i < 50; i++) {
     const e = document.createElement('div');
@@ -381,14 +406,32 @@ function spawnConfetti() {
     e.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
     e.style.animationDuration = (2 + Math.random() * 3) + 's';
     e.style.animationDelay = Math.random() * 1.5 + 's';
-    document.body.appendChild(e);
-    setTimeout(() => e.remove(), 5000);
+    confettiContainer.appendChild(e);
   }
+
+  setTimeout(() => {
+    if (confettiContainer) {
+      confettiContainer.remove();
+      confettiContainer = null;
+    }
+  }, 7000);
 }
 
 // ═══════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════
+
+window.openSettings      = openSettings;
+window.closeSettings     = closeSettings;
+window.startGame         = startGame;
+window.selectGrid        = selectGrid;
+window.addWord           = addWord;
+window.switchSourceTab   = switchSourceTab;
+window.closeVictory      = closeVictory;
+window.clearImagePreview = clearImagePreview;
+window.removeWord        = removeWord;
+window.selectEmojiCategory = selectEmojiCategory;
+window.pickEmoji         = pickEmoji;
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('newWordInput').addEventListener('keydown', e => {
@@ -397,3 +440,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
   startGame();
 });
+
+})();
