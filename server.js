@@ -113,6 +113,16 @@ app.post('/api/config', (req, res) => {
   }
 });
 
+// GET /api/version — Current deployed version
+app.get('/api/version', (_req, res) => {
+  try {
+    const v = fs.readFileSync(path.join(__dirname, '.version'), 'utf8').trim();
+    res.json({ version: v });
+  } catch {
+    res.json({ version: 'dev' });
+  }
+});
+
 // ── Start server ──
 app.listen(PORT, () => {
   console.log(`\n  🎮 Jogo da Memória - Magalu Cloud`);

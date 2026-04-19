@@ -201,6 +201,10 @@ function selectGrid(t) {
 }
 
 function openSettings() {
+  fetch('/api/version')
+    .then(r => r.json())
+    .then(d => { const el = document.getElementById('appVersion'); if (el) el.textContent = d.version; })
+    .catch(() => {});
   renderWordList();
   renderEmojiPicker();
   switchSourceTab('emoji');
