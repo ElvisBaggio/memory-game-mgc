@@ -34,6 +34,42 @@ Acesse: [http://localhost:3000](http://localhost:3000)
 └── game-config.json    # Configurações salvas (gerado automaticamente)
 ```
 
+## Configurar Block Storage na VM (MGC)
+
+Caso você tenha anexado um Block Storage à sua VM na Magalu Cloud, siga os passos abaixo para reconhecê-lo e montá-lo.
+
+```bash
+# 1. Verificar os discos disponíveis (o novo volume aparece geralmente como /dev/vdb)
+lsblk
+
+# 2. Formatar o disco (apenas na primeira vez — apaga todos os dados)
+sudo mkfs.ext4 /dev/vdb
+
+# 3. Criar o ponto de montagem
+sudo mkdir -p /mnt/blockstorage
+
+# 4. Montar o volume
+sudo mount /dev/vdb /mnt/blockstorage
+
+# 5. Verificar se montou corretamente
+df -h /mnt/blockstorage
+
+# 6. Tornar a montagem persistente (sobrevive ao reboot)
+echo '/dev/vdb /mnt/blockstorage ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+```
+
+### Persistir uploads no Block Storage
+
+Para que as imagens enviadas no jogo sejam salvas no Block Storage:
+
+```bash
+# Mover a pasta de uploads para o block storage
+sudo mv /opt/memory-game/uploads /mnt/blockstorage/uploads
+
+# Criar link simbólico para o app continuar funcionando
+sudo ln -s /mnt/blockstorage/uploads /opt/memory-game/uploads
+```
+
 ## Deploy em VM simples
 
 ```bash
